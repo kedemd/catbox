@@ -1,7 +1,7 @@
 ![catbox Logo](https://raw.github.com/hapijs/catbox/master/images/catbox.png)
 
 Multi-strategy object caching service
-Version: **4.x**
+Version: **5.x**
 
 [![Build Status](https://secure.travis-ci.org/hapijs/catbox.png)](http://travis-ci.org/hapijs/catbox)
 
@@ -96,8 +96,12 @@ The object is constructed using `new Policy(options, [cache, segment])` where:
     - `staleTimeout` - number of milliseconds to wait before checking if an item is stale.
     - `generateTimeout` - number of milliseconds to wait before returning a timeout error when the `generateFunc` function
       takes too long to return a value. When the value is eventually returned, it is stored in the cache for future requests.
+      Required if `generateFunc` is present. Set to `false` to disable timeouts which may cause all `get()` requests to get stuck
+      forever.
     - `dropOnError` - if `true`, an error or timeout in the `generateFunc` causes the stale value to be evicted from the cache.
       Defaults  to `true`.
+    - `generateOnGetError` - if `false`, an upstream cache error will stop the `get()` method from calling the generate function
+      and will instead pass back the cache error. Defaults to `true`.
 - `cache` - a `Client` instance (which has already been started).
 - `segment` - required when `cache` is provided. The segment name used to isolate cached items within the cache partition.
 
@@ -136,3 +140,10 @@ The `Policy` object provides the following methods:
 - `rules(options)` - changes the policy rules after construction (note that items already stored will not be affected) where:
     - `options` - the same `options` as the `Policy` constructor.
 - `isReady()` - returns `true` if cache engine determines itself as ready, `false` if it is not ready or if there is no cache engine set.
+- `stats` - an object with cache statistics where:
+    - `sets` - number of cache writes.
+    - `gets` - number of cache `get()` requests.
+    - `hits` - number of cache `get()` requests in which the requested id was found in the cache (can be stale).
+    - `stales` - number of cache reads with stale requests (only counts the first request in a queued `get()` operation).
+    - `generates` - number of calls to the generate function.
+    - `errors` - cache operations errors.
